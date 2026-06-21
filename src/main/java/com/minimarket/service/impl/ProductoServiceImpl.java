@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class ProductoServiceImpl implements ProductoService {
@@ -37,5 +38,22 @@ public class ProductoServiceImpl implements ProductoService {
     @Override
     public List<Producto> findByCategoriaId(Long categoriaId) {
         return productoRepository.findByCategoriaId(categoriaId);
+    }
+
+    @Override
+    public boolean hayStock(Long productoId, int cantidad) {
+        Optional<Producto> producto = productoRepository.findById(productoId);
+        return producto.isPresent() && producto.get().getStock() >= cantidad;
+    }
+
+    @Override
+    public Producto descontarStock(Long productoId, int cantidad) {
+        Producto producto = productoRepository.findById(productoId)
+                .orElseThrow(() -> new IllegalArgumentException("El producto no existe"));
+        if (producto.getStock() < cantidad) {
+            throw new IllegalArgumentException("Stock insuficiente");
+        }
+        producto.setStock(producto.getStock() - cantidad);
+        return productoRepository.save(producto);
     }
 }

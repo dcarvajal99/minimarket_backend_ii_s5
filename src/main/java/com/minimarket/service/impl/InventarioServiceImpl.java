@@ -38,4 +38,36 @@ public class InventarioServiceImpl implements InventarioService {
     public List<Inventario> findByProductoId(Long productoId) {
         return inventarioRepository.findByProductoId(productoId);
     }
+
+    @Override
+    public boolean datosMovimientoValidos(Inventario inventario) {
+        if (inventario == null) {
+            return false;
+        }
+        boolean tipoValido = inventario.getTipoMovimiento() != null
+                && !inventario.getTipoMovimiento().trim().isEmpty();
+        boolean cantidadValida = inventario.getCantidad() != null
+                && inventario.getCantidad() > 0;
+        return tipoValido && cantidadValida;
+    }
+
+    @Override
+    public boolean productoEsCorrecto(Inventario inventario, Long productoId) {
+        return inventario != null
+                && inventario.getProducto() != null
+                && inventario.getProducto().getId() != null
+                && inventario.getProducto().getId().equals(productoId);
+    }
+
+    @Override
+    public Inventario registrarMovimiento(Inventario inventario) {
+        if (!datosMovimientoValidos(inventario)) {
+            throw new IllegalArgumentException(
+                    "Datos de movimiento invalidos: tipoMovimiento y cantidad son obligatorios");
+        }
+        if (inventario.getProducto() == null) {
+            throw new IllegalArgumentException("El movimiento debe estar asociado a un producto");
+        }
+        return inventarioRepository.save(inventario);
+    }
 }
